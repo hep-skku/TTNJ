@@ -1,0 +1,6 @@
+<use name="FWCore/Framework"/>
+<use name="DataFormats/Common"/>
+<use name="DataFormats/PatCandidates"/>
+<library   file="*.cc" name="TopAnalysisTTJetsCrossSection_plugins">
+  <flags EDM_PLUGIN="1" />
+</library>
