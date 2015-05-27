@@ -2,10 +2,6 @@
 #include "FWCore/Framework/interface/EDFilter.h"
 
 #include "FWCore/Framework/interface/Event.h"
-//#include "FWCore/Framework/interface/EventSetup.h"
-//#include "FWCore/Framework/interface/ESHandle.h"
-//#include "FWCore/Framework/interface/Run.h"
-//#include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Utilities/interface/InputTag.h"
 #include "DataFormats/Common/interface/Handle.h"
@@ -20,11 +16,11 @@
 
 using namespace std;
 
-class TopDileptonCutFlowProducer : public edm::EDFilter
+class TopDileptonObjectProducer : public edm::EDFilter
 {
 public:
-  TopDileptonCutFlowProducer(const edm::ParameterSet& pset);
-  ~TopDileptonCutFlowProducer() {};
+  TopDileptonObjectProducer(const edm::ParameterSet& pset);
+  ~TopDileptonObjectProducer() {};
 
   bool filter(edm::Event& event, const edm::EventSetup&) override final;
 
@@ -54,7 +50,7 @@ private:
 
 };
 
-TopDileptonCutFlowProducer::TopDileptonCutFlowProducer(const edm::ParameterSet& pset):
+TopDileptonObjectProducer::TopDileptonObjectProducer(const edm::ParameterSet& pset):
   vertexToken_(consumes<TVertices>(pset.getParameter<edm::InputTag>("vertex"))),
   muonToken_(consumes<TMuons>(pset.getParameter<edm::InputTag>("muon"))),
   electronToken_(consumes<TElectrons>(pset.getParameter<edm::InputTag>("electron"))),
@@ -70,7 +66,7 @@ TopDileptonCutFlowProducer::TopDileptonCutFlowProducer(const edm::ParameterSet& 
 //  produces<TMETs>("mets");
 }
 
-bool TopDileptonCutFlowProducer::filter(edm::Event& event, const edm::EventSetup&)
+bool TopDileptonObjectProducer::filter(edm::Event& event, const edm::EventSetup&)
 {
   // Define collections for output
   int mode = 0, passedCutStep = 0;
@@ -191,7 +187,7 @@ bool TopDileptonCutFlowProducer::filter(edm::Event& event, const edm::EventSetup
 }
 
 template<typename TColl>
-bool TopDileptonCutFlowProducer::isOverlapToAny(const reco::Candidate& cand, const TColl& coll, const double dR) const
+bool TopDileptonObjectProducer::isOverlapToAny(const reco::Candidate& cand, const TColl& coll, const double dR) const
 {
   const double dR2 = dR*dR;
   const double eta = cand.eta(), phi = cand.phi();
@@ -202,23 +198,25 @@ bool TopDileptonCutFlowProducer::isOverlapToAny(const reco::Candidate& cand, con
   return false;
 }
 
-bool TopDileptonCutFlowProducer::isGoodVertex(const reco::Vertex& vtx) const
+bool TopDileptonObjectProducer::isGoodVertex(const reco::Vertex& vtx) const
 {
   return true;
 }
 
-bool TopDileptonCutFlowProducer::isGoodMuon(const pat::Muon& m, const reco::Vertex& vtx) const
+bool TopDileptonObjectProducer::isGoodMuon(const pat::Muon& m, const reco::Vertex& vtx) const
 {
   return true;
 }
 
-bool TopDileptonCutFlowProducer::isGoodElectron(const pat::Electron& e, const reco::Vertex& vtx) const
+bool TopDileptonObjectProducer::isGoodElectron(const pat::Electron& e, const reco::Vertex& vtx) const
 {
   return true;
 }
 
-bool TopDileptonCutFlowProducer::isGoodJet(const pat::Jet& j) const
+bool TopDileptonObjectProducer::isGoodJet(const pat::Jet& j) const
 {
   return true;
 }
 
+#include "FWCore/Framework/interface/MakerMacros.h"
+DEFINE_FWK_MODULE(TopDileptonObjectProducer);
