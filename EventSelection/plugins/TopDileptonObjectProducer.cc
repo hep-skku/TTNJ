@@ -2,6 +2,7 @@
 #include "FWCore/Framework/interface/EDFilter.h"
 
 #include "FWCore/Framework/interface/Event.h"
+#include "FWCore/Framework/interface/ConsumesCollector.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Utilities/interface/InputTag.h"
 #include "DataFormats/Common/interface/Handle.h"
@@ -25,11 +26,6 @@ public:
   bool filter(edm::Event& event, const edm::EventSetup&) override final;
 
 private:
-  bool isGoodVertex(const reco::Vertex& vtx) const;
-  bool isGoodMuon(const pat::Muon& m, const reco::Vertex& vtx) const;
-  bool isGoodElectron(const pat::Electron& e, const reco::Vertex& vtx) const;
-  bool isGoodJet(const pat::Jet& j) const;
-
   template<typename TColl>
   bool isOverlapToAny(const reco::Candidate& cand, const TColl& coll, const double dR) const;
 
@@ -39,12 +35,54 @@ private:
   typedef std::vector<pat::Electron> TElectrons;
   typedef std::vector<pat::Jet> TJets;
   typedef std::vector<pat::MET> TMETs;
+  typedef edm::ValueMap<bool> VMapB;
+  typedef edm::ValueMap<float> VMapF;
 
-  edm::EDGetTokenT<TVertices> vertexToken_;
-  edm::EDGetTokenT<TMuons> muonToken_;
-  edm::EDGetTokenT<TElectrons> electronToken_;
-  edm::EDGetTokenT<TJets> jetToken_;
-  edm::EDGetTokenT<TMETs> metToken_;
+  template<typename TLepton>
+  struct LeptonConsumer
+  {
+    LeptonConsumer(const edm::ParameterSet& pset, edm::ConsumesCollector && iC)
+    {
+      srcToken_ = iC.consumes<std::vector<TLepton> >(pset.getParameter<edm::InputTag>("src"));
+      idToken_ = iC.consumes<VMapB>(pset.getParameter<edm::InputTag>("id"));
+      chIsoToken_ = iC.consumes<VMapF>(pset.getParameter<edm::InputTag>("chIso"));
+      nhIsoToken_ = iC.consumes<VMapF>(pset.getParameter<edm::InputTag>("nhIso"));
+      phIsoToken_ = iC.consumes<VMapF>(pset.getParameter<edm::InputTag>("phIso"));
+      puIsoToken_ = iC.consumes<VMapF>(pset.getParameter<edm::InputTag>("puIso"));
+    };
+
+    void load(const edm::Event& event)
+    {
+      event.getByToken(srcToken_, srcHandle_);
+      event.getByToken(idToken_, idHandle_);
+      event.getByToken(chIsoToken_, chIsoHandle_);
+      event.getByToken(nhIsoToken_, nhIsoHandle_);
+      event.getByToken(phIsoToken_, phIsoHandle_);
+      event.getByToken(puIsoToken_, puIsoHandle_);
+    };
+
+    typedef std::vector<TLepton> TLeptons;
+
+    edm::EDGetTokenT<TLeptons> srcToken_;
+    edm::EDGetTokenT<VMapB> idToken_;
+    edm::EDGetTokenT<VMapF> chIsoToken_;
+    edm::EDGetTokenT<VMapF> nhIsoToken_;
+    edm::EDGetTokenT<VMapF> phIsoToken_;
+    edm::EDGetTokenT<VMapF> puIsoToken_;
+
+    edm::Handle<TLeptons> srcHandle_;
+    edm::Handle<VMapB> idHandle_;
+    edm::Handle<VMapF> chIsoHandle_;
+    edm::Handle<VMapF> nhIsoHandle_;
+    edm::Handle<VMapF> phIsoHandle_;
+    edm::Handle<VMapF> puIsoHandle_;
+  };
+
+  const edm::EDGetTokenT<TVertices> vertexToken_;
+  const edm::EDGetTokenT<TJets> jetToken_;
+  const edm::EDGetTokenT<TMETs> metToken_;
+  LeptonConsumer<pat::Muon> muonC_;
+  LeptonConsumer<pat::Electron> electronC_;
 
   const int cutStepToAccept_;
 
@@ -52,9 +90,10 @@ private:
 
 TopDileptonObjectProducer::TopDileptonObjectProducer(const edm::ParameterSet& pset):
   vertexToken_(consumes<TVertices>(pset.getParameter<edm::InputTag>("vertex"))),
-  muonToken_(consumes<TMuons>(pset.getParameter<edm::InputTag>("muon"))),
-  electronToken_(consumes<TElectrons>(pset.getParameter<edm::InputTag>("electron"))),
   jetToken_(consumes<TJets>(pset.getParameter<edm::InputTag>("jet"))),
+  metToken_(consumes<TMETs>(pset.getParameter<edm::InputTag>("met"))),
+  muonC_(pset.getParameter<edm::ParameterSet>("muon"), consumesCollector()),
+  electronC_(pset.getParameter<edm::ParameterSet>("electron"), consumesCollector()),
   cutStepToAccept_(pset.getParameter<int>("cutStepToAccept"))
 {
   produces<int>("mode");
@@ -75,12 +114,6 @@ bool TopDileptonObjectProducer::filter(edm::Event& event, const edm::EventSetup&
   edm::Handle<TVertices> vertexHandle;
   event.getByToken(vertexToken_, vertexHandle);
 
-  edm::Handle<TMuons> muonHandle;
-  event.getByToken(muonToken_, muonHandle);
-
-  edm::Handle<TElectrons> electronHandle;
-  event.getByToken(electronToken_, electronHandle);
-
   edm::Handle<TJets> jetHandle;
   event.getByToken(jetToken_, jetHandle);
 
@@ -88,16 +121,13 @@ bool TopDileptonObjectProducer::filter(edm::Event& event, const edm::EventSetup&
   event.getByToken(metToken_, metHandle);
   const auto& met = metHandle->at(0);
 
+  muonC_.load(event);
+  electronC_.load(event);
+
   // Count good vertices
-  int nVertex = 0;
-  const reco::Vertex* pv = 0;
-  for ( const auto& vtx : *vertexHandle )
-  {
-    if ( !isGoodVertex(vtx) ) continue;
-    if ( !pv ) pv = &vtx;
-    ++nVertex;
-  }
-  if ( !pv ) return false;
+  const int nVertex = vertexHandle->size();
+  if ( nVertex == 0 ) return false;
+  //const reco::Vertex& pv = vertexHandle->at(0);
 
   // Objects to be used in plotting
   const reco::Candidate* lepton1 = 0, * lepton2 = 0;
@@ -106,34 +136,52 @@ bool TopDileptonObjectProducer::filter(edm::Event& event, const edm::EventSetup&
   {
     // Select leptons - requre full ID and Isolation cuts
     // We are using pair of opposite charged maximizing pt1+pt2, so no need to store 3rd leptons
-    for ( const auto& mu : *muonHandle )
+    int nGoodLepton = 0;
+    for ( size_t i=0, n=muonC_.srcHandle_->size(); i<n; ++i )
     {
-      const double pt = mu.pt();
-      if ( pt < 20 or std::abs(mu.eta()) > 2.4 ) continue;
-      if ( !isGoodMuon(mu, *pv) ) continue;
-      //if ( !mu.isIso() ) continue; // FIXME: Add isolation cut here
+      const auto mu = pat::MuonRef(muonC_.srcHandle_, i);
+      const double pt = mu->pt();
 
-      if ( mu.charge() > 0 and (!lepton1 or lepton1->pt() < pt) ) lepton1 = &mu;
-      else if ( !lepton2 or lepton2->pt() < pt ) lepton2 = &mu;
+      const bool id = (*muonC_.idHandle_)[mu];
+      const float chIso = (*muonC_.chIsoHandle_)[mu];
+      const float nhIso = (*muonC_.nhIsoHandle_)[mu];
+      const float phIso = (*muonC_.phIsoHandle_)[mu];
+      const float puIso = (*muonC_.puIsoHandle_)[mu];
+      const float relIso = (chIso+max(0., nhIso+phIso-0.5*puIso))/pt;
+
+      if ( pt < 20 or std::abs(mu->eta()) > 2.4 ) continue;
+      if ( !id || relIso > 0.2 ) continue;
+      ++nGoodLepton;
+
+      if ( mu->charge() > 0 and (!lepton1 or lepton1->pt() < pt) ) lepton1 = &*mu;
+      else if ( !lepton2 or lepton2->pt() < pt ) lepton2 = &*mu;
     }
-    for ( const auto& el : *electronHandle )
+    for ( size_t i=0, n=electronC_.srcHandle_->size(); i<n; ++i )
     {
-      const double pt = el.pt();
-      if ( pt < 20 or std::abs(el.eta()) > 2.4 ) continue;
-      if ( !isGoodElectron(el, *pv) ) continue;
-      //if ( el.isIso() ) continue; // FIXME: Add isolation cut here
+      const auto el = pat::ElectronRef(electronC_.srcHandle_, i);
 
-      if ( el.charge() > 0 and (!lepton1 or lepton1->pt() < pt) ) lepton1 = &el;
-      else if ( !lepton2 or lepton2->pt() < pt ) lepton2 = &el;
+      const double pt = el->pt();
+      const bool id = (*electronC_.idHandle_)[el];
+      const float chIso = (*electronC_.chIsoHandle_)[el];
+      const float nhIso = (*electronC_.nhIsoHandle_)[el];
+      const float phIso = (*electronC_.phIsoHandle_)[el];
+      const float puIso = (*electronC_.puIsoHandle_)[el];
+      const float relIso = (chIso+max(0., nhIso+phIso-0.5*puIso))/pt;
+
+      if ( pt < 20 or std::abs(el->eta()) > 2.4 ) continue;
+      if ( !id || relIso > 0.2 ) continue;
+      ++nGoodLepton;
+
+      if ( el->charge() > 0 and (!lepton1 or lepton1->pt() < pt) ) lepton1 = &*el;
+      else if ( !lepton2 or lepton2->pt() < pt ) lepton2 = &*el;
     }
 
     // Collect good jets
     for ( const auto& jet : *jetHandle )
     {
       if ( jet.pt() < 30 or std::abs(jet.eta()) > 2.5 ) continue;
-      if ( !isGoodJet(jet) ) continue;
-      if ( isOverlapToAny(jet, *muonHandle, 0.3) ) continue;
-      if ( isOverlapToAny(jet, *electronHandle, 0.3) ) continue;
+      if ( isOverlapToAny(jet, *muonC_.srcHandle_, 0.3) ) continue;
+      if ( isOverlapToAny(jet, *electronC_.srcHandle_, 0.3) ) continue;
 
       goodJets.push_back(&jet);
       //if ( jet.bDiscriminator("CombinedSecondaryVertexTagsV0") > 0.244 ) bJets.push_back(&jet);
@@ -141,6 +189,7 @@ bool TopDileptonObjectProducer::filter(edm::Event& event, const edm::EventSetup&
 
     // Now we have all ingredients. Go the cut step determination
     if ( !lepton1 or !lepton2 ) break;
+    //if ( nGoodLepton != 2 ) break; // Require exactly 2 leptons, veto events with 3rd lepton
     if      ( lepton1->isMuon() and lepton2->isMuon() ) mode = 1;
     else if ( lepton1->isElectron() and lepton2->isElectron() ) mode = 2;
     else mode = 3;
@@ -196,26 +245,6 @@ bool TopDileptonObjectProducer::isOverlapToAny(const reco::Candidate& cand, cons
     if ( deltaR2(eta, phi, x.eta(), x.phi()) < dR2 ) return true;
   }
   return false;
-}
-
-bool TopDileptonObjectProducer::isGoodVertex(const reco::Vertex& vtx) const
-{
-  return true;
-}
-
-bool TopDileptonObjectProducer::isGoodMuon(const pat::Muon& m, const reco::Vertex& vtx) const
-{
-  return true;
-}
-
-bool TopDileptonObjectProducer::isGoodElectron(const pat::Electron& e, const reco::Vertex& vtx) const
-{
-  return true;
-}
-
-bool TopDileptonObjectProducer::isGoodJet(const pat::Jet& j) const
-{
-  return true;
 }
 
 #include "FWCore/Framework/interface/MakerMacros.h"
