@@ -7,8 +7,8 @@
 //#include "FWCore/Utilities/interface/InputTag.h"
 //#include "DataFormats/Common/interface/Handle.h"
 
-#include "TTNJ/EventSelection/interface/LeptonConsumer.h"
-#include "TTNJ/EventSelection/interface/JetConsumer.h"
+#include "TTNJ/ProcessEvent/interface/LeptonConsumer.h"
+#include "TTNJ/ProcessEvent/interface/JetConsumer.h"
 
 #include "DataFormats/VertexReco/interface/Vertex.h"
 //#include "DataFormats/PatCandidates/interface/Muon.h"

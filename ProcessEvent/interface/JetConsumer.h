@@ -1,5 +1,5 @@
-#ifndef TTNJ_EventSelection_JetConsumer_H
-#define TTNJ_EventSelection_JetConsumer_H
+#ifndef TTNJ_ProcessEvent_JetConsumer_H
+#define TTNJ_ProcessEvent_JetConsumer_H
 
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/ConsumesCollector.h"

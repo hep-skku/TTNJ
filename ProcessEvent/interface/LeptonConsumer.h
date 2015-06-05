@@ -1,5 +1,5 @@
-#ifndef TTNJ_EventSelection_LeptonConsumer_H
-#define TTNJ_EventSelection_LeptonConsumer_H
+#ifndef TTNJ_ProcessEvent_LeptonConsumer_H
+#define TTNJ_ProcessEvent_LeptonConsumer_H
 
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/ConsumesCollector.h"
