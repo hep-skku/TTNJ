@@ -30,6 +30,6 @@ topDileptonObjects = cms.EDFilter("TopDileptonProducer",
         phIso = cms.InputTag("egmGedGsfElectronPFNoPileUpIsolation", "gamma-DR030-BarVeto000-EndVeto008"),
         puIso = cms.InputTag("egmGedGsfElectronPFPileUpIsolation", "h+-DR030-BarVeto000-EndVeto001"),
     ),
-    cutStepToAccept = cms.int32(5), 
+    cutStepToAccept = cms.int32(3),
 )
 
