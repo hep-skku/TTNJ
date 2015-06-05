@@ -19,24 +19,19 @@ process.source = cms.Source("PoolSource",
   ),
 )
 
+process.load("TTNJ.EventSelection.partonTop_cfi")
 process.load("TTNJ.EventSelection.topDileptonProducer_cfi")
 from TTNJ.EventSelection.setupMiniAOD_cff import setupMiniAOD
 setupMiniAOD(process)
 process.load("TTNJ.EventSelection.ntuple_cff")
 
-process.p = cms.Path(process.topDileptonObjects*process.ntuple)
+process.p = cms.Path(
+    process.partonTop
+  + process.topDileptonObjects
+  * process.ntuple
+)
 
 process.TFileService = cms.Service("TFileService",
   fileName = cms.string('f.root')
 )
-
-#process.out = cms.OutputModule("PoolOutputModule",
-#    fileName = cms.untracked.string("o.root"),
-#    outputCommands = cms.untracked.vstring(
-#        "drop *",
-#        "keep *_top*_*_ANA",
-#    ),
-#    SelectEvents = cms.untracked.PSet( SelectEvents = cms.vstring('p') ),
-#)
-#process.outPath = cms.EndPath(process.out)
 
