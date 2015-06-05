@@ -58,6 +58,7 @@ TopDileptonProducer::TopDileptonProducer(const edm::ParameterSet& pset):
   produces<int>("step");
 
   produces<std::vector<reco::LeafCandidate> >("leptons");
+  produces<double>("mLL");
   produces<pat::JetCollection>("jets");
   produces<edm::RefVector<pat::JetCollection> >("bjets");
 //  produces<pat::METCollection>("mets");
@@ -87,7 +88,7 @@ bool TopDileptonProducer::filter(edm::Event& event, const edm::EventSetup&)
   std::auto_ptr<LeafCands> out_leptons(new LeafCands);
   std::auto_ptr<pat::JetCollection> out_jets(new pat::JetCollection);
   std::vector<int> bjetIndex;
-
+  double mLL = -1;
   do
   {
     // Step 1   Dilepton pair choice
@@ -119,13 +120,13 @@ bool TopDileptonProducer::filter(edm::Event& event, const edm::EventSetup&)
 
     // Minimum dilepton mass
     const auto dileptonP4 = lepton1.p4() + lepton2.p4();
-    const double dileptonMass = dileptonP4.mass();
-    if ( dileptonMass < 20 ) break;
+    mLL = dileptonP4.mass();
+    if ( mLL < 20 ) break;
 
     ++passedCutStep; // Now this passes cut step 1.
 
     // Step 2   Z mass veto   Dilepton mass not in 76-106 GeV range (Zmass+-15) for ee/mm
-    if ( mode != 3 and (dileptonMass >= 76 and dileptonMass <= 106) ) break;
+    if ( mode != 3 and (mLL >= 76 and mLL <= 106) ) break;
 
     ++passedCutStep;
 
@@ -159,6 +160,7 @@ bool TopDileptonProducer::filter(edm::Event& event, const edm::EventSetup&)
   event.put(std::auto_ptr<int>(new int(passedCutStep)), "step");
 
   event.put(out_leptons, "leptons");
+  event.put(std::auto_ptr<double>(new double(mLL)), "mLL");
   auto out_jetHandle = event.put(out_jets, "jets");
   std::auto_ptr<edm::RefVector<pat::JetCollection> > out_bjets(new edm::RefVector<pat::JetCollection>);
   for ( auto i : bjetIndex ) out_bjets->push_back(pat::JetRef(out_jetHandle, i));

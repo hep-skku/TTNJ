@@ -19,53 +19,24 @@ process.source = cms.Source("PoolSource",
   ),
 )
 
-process.load("RecoMuon.MuonIdentification.Identification.cutBasedMuonId_MuonPOG_V0_cff")
-process.load("RecoMuon.MuonIsolation.muonPFIsolationCitk_cff")
-from PhysicsTools.SelectorUtils.tools.vid_id_tools import *
-switchOnVIDMuonIdProducer(process, DataFormat.MiniAOD)
-setupVIDMuonSelection(process, process.cutBasedMuonId_MuonPOG_V0_loose)
-setupVIDMuonSelection(process, process.cutBasedMuonId_MuonPOG_V0_medium)
-setupVIDMuonSelection(process, process.cutBasedMuonId_MuonPOG_V0_tight)
-setupVIDMuonSelection(process, process.cutBasedMuonId_MuonPOG_V0_soft)
-setupVIDMuonSelection(process, process.cutBasedMuonId_MuonPOG_V0_highpt)
-
-process.load("RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_PHYS14_PU20bx25_V2_cff")
-process.load("RecoEgamma.EgammaIsolationAlgos.egmGedGsfElectronPFIsolation_cfi")
-switchOnVIDElectronIdProducer(process, DataFormat.MiniAOD)
-setupVIDElectronSelection(process, process.cutBasedElectronID_PHYS14_PU20bx25_V2_standalone_loose)
-setupVIDElectronSelection(process, process.cutBasedElectronID_PHYS14_PU20bx25_V2_standalone_medium)
-setupVIDElectronSelection(process, process.cutBasedElectronID_PHYS14_PU20bx25_V2_standalone_tight)
-
-process.load("TTNJ.EventSelection.topCommonObjects_cff")
 process.load("TTNJ.EventSelection.topDileptonProducer_cfi")
-process.goodOfflinePrimaryVertices.src = "offlineSlimmedPrimaryVertices"
-process.offlinePrimaryVertices = cms.EDFilter("VertexSelector", src = cms.InputTag("offlineSlimmedPrimaryVertices"), cut = cms.string(""))
+from TTNJ.EventSelection.setupMiniAOD_cff import setupMiniAOD
+setupMiniAOD(process)
+process.load("TTNJ.EventSelection.ntuple_cff")
 
-process.muonPFPileUpIsolation.srcToIsolate = "slimmedMuons"
-process.muonPFNoPileUpIsolation.srcToIsolate = "slimmedMuons"
-process.egmGedGsfElectronPFPileUpIsolation.srcToIsolate = "slimmedElectrons"
-process.egmGedGsfElectronPFNoPileUpIsolation.srcToIsolate = "slimmedElectrons"
-
-process.muonPFPileUpIsolation.srcForIsolationCone = "packedPFCandidates"
-process.muonPFNoPileUpIsolation.srcForIsolationCone = "packedPFCandidates"
-process.egmGedGsfElectronPFPileUpIsolation.srcForIsolationCone = "packedPFCandidates"
-process.egmGedGsfElectronPFNoPileUpIsolation.srcForIsolationCone = "packedPFCandidates"
-
-process.p = cms.Path(
-    process.topDileptonObjects
-)
+process.p = cms.Path(process.topDileptonObjects*process.ntuple)
 
 process.TFileService = cms.Service("TFileService",
   fileName = cms.string('f.root')
 )
 
-process.out = cms.OutputModule("PoolOutputModule",
-    fileName = cms.untracked.string("o.root"),
-    outputCommands = cms.untracked.vstring(
-        "drop *",
-        "keep *_top*_*_ANA",
-    ),
+#process.out = cms.OutputModule("PoolOutputModule",
+#    fileName = cms.untracked.string("o.root"),
+#    outputCommands = cms.untracked.vstring(
+#        "drop *",
+#        "keep *_top*_*_ANA",
+#    ),
 #    SelectEvents = cms.untracked.PSet( SelectEvents = cms.vstring('p') ),
-)
-process.outPath = cms.EndPath(process.out)
+#)
+#process.outPath = cms.EndPath(process.out)
 
