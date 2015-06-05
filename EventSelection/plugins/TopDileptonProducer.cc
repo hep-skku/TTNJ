@@ -88,8 +88,6 @@ bool TopDileptonProducer::filter(edm::Event& event, const edm::EventSetup&)
   std::auto_ptr<pat::JetCollection> out_jets(new pat::JetCollection);
   std::vector<int> bjetIndex;
 
-  return true;
-
   do
   {
     // Step 1   Dilepton pair choice
@@ -164,7 +162,7 @@ bool TopDileptonProducer::filter(edm::Event& event, const edm::EventSetup&)
   auto out_jetHandle = event.put(out_jets, "jets");
   std::auto_ptr<edm::RefVector<pat::JetCollection> > out_bjets(new edm::RefVector<pat::JetCollection>);
   for ( auto i : bjetIndex ) out_bjets->push_back(pat::JetRef(out_jetHandle, i));
-  event.put(out_jets, "bjets");
+  event.put(out_bjets, "bjets");
 
   return passedCutStep >= cutStepToAccept_;
 }
