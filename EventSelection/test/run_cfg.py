@@ -65,7 +65,7 @@ process.out = cms.OutputModule("PoolOutputModule",
         "drop *",
         "keep *_top*_*_ANA",
     ),
-    SelectEvents = cms.untracked.PSet( SelectEvents = cms.vstring('p') ),
+#    SelectEvents = cms.untracked.PSet( SelectEvents = cms.vstring('p') ),
 )
 process.outPath = cms.EndPath(process.out)
 
