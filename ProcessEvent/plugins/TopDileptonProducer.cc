@@ -61,7 +61,8 @@ TopDileptonProducer::TopDileptonProducer(const edm::ParameterSet& pset):
   produces<double>("mLL");
   produces<pat::JetCollection>("jets");
   produces<edm::RefVector<pat::JetCollection> >("bjets");
-//  produces<pat::METCollection>("mets");
+  produces<double>("metPt");
+  produces<double>("metPhi");
 }
 
 bool TopDileptonProducer::filter(edm::Event& event, const edm::EventSetup&)
@@ -165,6 +166,8 @@ bool TopDileptonProducer::filter(edm::Event& event, const edm::EventSetup&)
   std::auto_ptr<edm::RefVector<pat::JetCollection> > out_bjets(new edm::RefVector<pat::JetCollection>);
   for ( auto i : bjetIndex ) out_bjets->push_back(pat::JetRef(out_jetHandle, i));
   event.put(out_bjets, "bjets");
+  event.put(std::auto_ptr<double>(new double(met.pt())), "metPt");
+  event.put(std::auto_ptr<double>(new double(met.phi())), "metPhi");
 
   return passedCutStep >= cutStepToAccept_;
 }
