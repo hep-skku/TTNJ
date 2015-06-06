@@ -10,7 +10,7 @@ ntuple = cms.EDAnalyzer("GenericNtupleMaker",
         step = cms.PSet(src = cms.InputTag("topDileptonObjects", "step")),
         mc_channel = cms.PSet(src = cms.InputTag("partonTop", "channel")),
     ),
-    vint = cms.PSet(
+    ints = cms.PSet(
         mc_modes = cms.PSet(src = cms.InputTag("partonTop", "modes")),
     ),
     double = cms.PSet(
@@ -18,7 +18,7 @@ ntuple = cms.EDAnalyzer("GenericNtupleMaker",
         met_pt = cms.PSet(src = cms.InputTag("topDileptonObjects", "metPt")),
         met_phi = cms.PSet(src = cms.InputTag("topDileptonObjects", "metPhi")),
     ),
-    vdouble = cms.PSet(
+    doubles = cms.PSet(
     ),
     cands = cms.PSet(
         leptons = cms.PSet(
