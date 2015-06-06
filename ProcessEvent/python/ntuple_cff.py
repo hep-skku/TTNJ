@@ -1,8 +1,8 @@
 import FWCore.ParameterSet.Config as cms
 
 ntuple = cms.EDAnalyzer("GenericNtupleMaker",
-    failureMode = cms.untracked.string("keep"), # choose one among keep/skip/error
-    #failureMode = cms.untracked.string("error"), # choose one among keep/skip/error
+    #failureMode = cms.untracked.string("keep"), # choose one among keep/skip/error
+    failureMode = cms.untracked.string("error"), # choose one among keep/skip/error
     eventCounters = cms.vstring(), #"nEventsTotal", "nEventsClean", "nEventsPAT"),
     int = cms.PSet(
         mode = cms.PSet(src = cms.InputTag("topDileptonObjects", "mode")),
@@ -15,6 +15,8 @@ ntuple = cms.EDAnalyzer("GenericNtupleMaker",
     ),
     double = cms.PSet(
         mLL = cms.PSet(src = cms.InputTag("topDileptonObjects", "mLL")),
+        met_pt = cms.PSet(src = cms.InputTag("topDileptonObjects", "metPt")),
+        met_phi = cms.PSet(src = cms.InputTag("topDileptonObjects", "metPhi")),
     ),
     vdouble = cms.PSet(
     ),
