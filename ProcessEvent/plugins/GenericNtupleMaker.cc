@@ -1,10 +1,10 @@
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDAnalyzer.h"
-#include "FWCore/Framework/interface/MakerMacros.h"
 
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/EventSetup.h"
 #include "FWCore/Framework/interface/LuminosityBlock.h"
+#include "FWCore/Framework/interface/ConsumesCollector.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Utilities/interface/InputTag.h"
@@ -31,6 +31,98 @@
 using namespace std;
 using namespace edm;
 
+template<typename T>
+class VectorConsumers
+{
+public:
+  typedef edm::ParameterSet PSet;
+
+  void init(const edm::ParameterSet& pset, edm::ConsumesCollector && iC, TTree* tree)
+  {
+    const auto names = pset.getParameterNamesForType<PSet>();
+    for ( auto& name : names )
+    {
+      const auto ipset = pset.getParameter<PSet>(name);
+      tokens_.push_back(iC.consumes<std::vector<T> >(ipset.getParameter<edm::InputTag>("src")));
+      values_.push_back(new std::vector<T>);
+      tree->Branch(name.c_str(), values_.back());
+    }
+  }
+
+  int load(const edm::Event& event)
+  {
+    int nFailure = 0;
+    for ( size_t i=0, n=tokens_.size(); i<n; ++i )
+    {
+      edm::Handle<std::vector<T> > handle;
+      event.getByToken(tokens_[i], handle);
+      if ( handle.isValid() )
+      {
+        values_[i]->insert(values_[i]->begin(), handle->begin(), handle->end());
+      }
+      else
+      {
+        ++nFailure;
+      }
+    }
+
+    return nFailure;
+  }
+
+  void clear()
+  {
+    for ( auto& v : values_ ) v->clear();
+  }
+
+private:
+  std::vector<edm::EDGetTokenT<std::vector<T> > > tokens_;
+  std::vector<std::vector<T>*> values_;
+
+};
+
+template<typename T>
+class FlatConsumers
+{
+public:
+  typedef edm::ParameterSet PSet;
+
+  void init(const edm::ParameterSet& pset, edm::ConsumesCollector && iC,
+            TTree* tree, const char* typeNameStr)
+  {
+    const auto names = pset.getParameterNamesForType<PSet>();
+    for ( auto& name : names )
+    {
+      const auto ipset = pset.getParameter<PSet>(name);
+      tokens_.push_back(iC.consumes<T>(ipset.getParameter<edm::InputTag>("src")));
+      values_.push_back(new T);
+      tree->Branch(name.c_str(), values_.back(), (name+"/"+typeNameStr).c_str());
+    }
+  }
+
+  int load(const edm::Event& event)
+  {
+    int nFailure = 0;
+    for ( size_t i=0, n=tokens_.size(); i<n; ++i )
+    {
+      edm::Handle<T> handle;
+      event.getByToken(tokens_[i], handle);
+      if ( handle.isValid() ) *values_[i] = *handle;
+      else
+      {
+        *values_[i] = -999;
+        ++nFailure;
+      }
+    }
+
+    return nFailure;
+  }
+
+private:
+  std::vector<edm::EDGetTokenT<T> > tokens_;
+  std::vector<T*> values_;
+
+};
+
 class GenericNtupleMaker : public edm::EDAnalyzer
 {
 public:
@@ -51,11 +143,12 @@ private:
 
   std::vector<CandToken> candTokens_;
   std::vector<std::vector<VmapToken> > vmapTokens_;
-  std::vector<edm::EDGetTokenT<int> > intTokens_;
-  std::vector<edm::EDGetTokenT<double> > doubleTokens_;
-  std::vector<edm::EDGetTokenT<vint> > vintTokens_;
-  std::vector<edm::EDGetTokenT<vdouble> > vdoubleTokens_;
   std::vector<edm::EDGetTokenT<edm::MergeableCounter> > eventCounterTokens_;
+
+  FlatConsumers<int> intCSet_;
+  FlatConsumers<double> doubleCSet_;
+  VectorConsumers<int> vintCSet_;
+  VectorConsumers<double> vdoubleCSet_;
 
   typedef StringObjectFunction<reco::Candidate,true> CandFtn;
   typedef StringCutObjectSelector<reco::Candidate,true> CandSel;
@@ -68,10 +161,6 @@ private:
 
   TTree* tree_;
   int runNumber_, lumiNumber_, eventNumber_;
-  std::vector<int*> int_;
-  std::vector<double*> double_;
-  std::vector<vint*> vint_;
-  std::vector<vdouble*> vdouble_;
   std::vector<std::vector<vdouble*> > candVars_;
 
   struct FAILUREMODE
@@ -98,49 +187,10 @@ GenericNtupleMaker::GenericNtupleMaker(const edm::ParameterSet& pset)
   tree_->Branch("lumi" , &lumiNumber_ , "lumi/I" );
   tree_->Branch("event", &eventNumber_, "event/I");
 
-  PSet intPSets = pset.getParameter<PSet>("int");
-  const strings intNames = intPSets.getParameterNamesForType<PSet>();
-  for ( auto& intName : intNames )
-  {
-    PSet intPSet = intPSets.getParameter<PSet>(intName);
-    intTokens_.push_back(consumes<int>(intPSet.getParameter<edm::InputTag>("src")));
-
-    int_.push_back(new int);
-    tree_->Branch(intName.c_str(), int_.back(), (intName+"/I").c_str());
-  }
-
-  PSet doublePSets = pset.getParameter<PSet>("double");
-  const strings doubleNames = doublePSets.getParameterNamesForType<PSet>();
-  for ( auto& doubleName : doubleNames )
-  {
-    PSet doublePSet = doublePSets.getParameter<PSet>(doubleName);
-    doubleTokens_.push_back(consumes<double>(doublePSet.getParameter<edm::InputTag>("src")));
-
-    double_.push_back(new double);
-    tree_->Branch(doubleName.c_str(), double_.back(), (doubleName+"/D").c_str());
-  }
-
-  PSet vintPSets = pset.getParameter<PSet>("vint");
-  const strings vintNames = vintPSets.getParameterNamesForType<PSet>();
-  for ( auto& vintName : vintNames )
-  {
-    PSet vintPSet = vintPSets.getParameter<PSet>(vintName);
-    vintTokens_.push_back(consumes<vint>(vintPSet.getParameter<edm::InputTag>("src")));
-
-    vint_.push_back(new vint);
-    tree_->Branch(vintName.c_str(), vint_.back());
-  }
-
-  PSet vdoublePSets = pset.getParameter<PSet>("vdouble");
-  const strings vdoubleNames = vdoublePSets.getParameterNamesForType<PSet>();
-  for ( auto& vdoubleName : vdoubleNames )
-  {
-    PSet vdoublePSet = vdoublePSets.getParameter<PSet>(vdoubleName);
-    vdoubleTokens_.push_back(consumes<vdouble>(vdoublePSet.getParameter<edm::InputTag>("src")));
-
-    vdouble_.push_back(new vdouble);
-    tree_->Branch(vdoubleName.c_str(), vdouble_.back());
-  }
+  intCSet_.init(pset.getParameter<PSet>("int"), consumesCollector(), tree_, "I");
+  doubleCSet_.init(pset.getParameter<PSet>("double"), consumesCollector(), tree_, "D");
+  vintCSet_.init(pset.getParameter<PSet>("vint"), consumesCollector(), tree_);
+  vdoubleCSet_.init(pset.getParameter<PSet>("vdouble"), consumesCollector(), tree_);
 
   PSet candPSets = pset.getParameter<PSet>("cands");
   const strings candNames = candPSets.getParameterNamesForType<PSet>();
@@ -207,60 +257,10 @@ void GenericNtupleMaker::analyze(const edm::Event& event, const edm::EventSetup&
   lumiNumber_  = event.luminosityBlock();
   eventNumber_ = event.id().event();
 
-  for ( size_t i=0, n=intTokens_.size(); i<n; ++i )
-  {
-    edm::Handle<int> intHandle;
-    event.getByToken(intTokens_[i], intHandle);
-    if ( intHandle.isValid() ) *int_[i] = *intHandle;
-    else
-    {
-      *int_[i] = 0;
-      ++nFailure;
-    }
-  }
-
-  for ( size_t i=0, n=doubleTokens_.size(); i<n; ++i )
-  {
-    edm::Handle<double> doubleHandle;
-    event.getByToken(doubleTokens_[i], doubleHandle);
-
-    if ( doubleHandle.isValid() ) *double_[i] = *doubleHandle;
-    else
-    {
-      *double_[i] = 0;
-      ++nFailure;
-    }
-  }
-
-  for ( size_t i=0, n=vintTokens_.size(); i<n; ++i )
-  {
-    edm::Handle<vint> vintHandle;
-    event.getByToken(vintTokens_[i], vintHandle);
-
-    if ( vintHandle.isValid() )
-    {
-      vint_[i]->insert(vint_[i]->begin(), vintHandle->begin(), vintHandle->end());
-    }
-    else
-    {
-      ++nFailure;
-    }
-  }
-
-  for ( size_t i=0, n=vdoubleTokens_.size(); i<n; ++i )
-  {
-    edm::Handle<vdouble> vdoubleHandle;
-    event.getByToken(vdoubleTokens_[i], vdoubleHandle);
-
-    if ( vdoubleHandle.isValid() )
-    {
-      vdouble_[i]->insert(vdouble_[i]->begin(), vdoubleHandle->begin(), vdoubleHandle->end());
-    }
-    else
-    {
-      ++nFailure;
-    }
-  }
+  nFailure += intCSet_.load(event);
+  nFailure += doubleCSet_.load(event);
+  nFailure += vintCSet_.load(event);
+  nFailure += vdoubleCSet_.load(event);
 
   const size_t nCand = candTokens_.size();
   for ( size_t iCand=0; iCand < nCand; ++iCand )
@@ -318,21 +318,9 @@ void GenericNtupleMaker::analyze(const edm::Event& event, const edm::EventSetup&
   }
   //else if ( failureMode_ == FAILUREMODE::SKIP ); // don't fill and continue memory cleanup
 
-  for ( size_t i=0, n=vintTokens_.size(); i<n; ++i )
-  {
-    edm::Handle<vint> vintHandle;
-    event.getByToken(vintTokens_[i], vintHandle);
-
-    vint_[i]->clear();
-  }
-
-  for ( size_t i=0, n=vdoubleTokens_.size(); i<n; ++i )
-  {
-    edm::Handle<vdouble> vdoubleHandle;
-    event.getByToken(vdoubleTokens_[i], vdoubleHandle);
-
-    vdouble_[i]->clear();
-  }
+  // Clear up after filling tree
+  vintCSet_.clear();
+  vdoubleCSet_.clear();
 
   for ( size_t iCand=0; iCand<nCand; ++iCand )
   {
@@ -356,6 +344,6 @@ void GenericNtupleMaker::endLuminosityBlock(const edm::LuminosityBlock& lumi, co
   }
 }
 
-
+#include "FWCore/Framework/interface/MakerMacros.h"
 DEFINE_FWK_MODULE(GenericNtupleMaker);
 
