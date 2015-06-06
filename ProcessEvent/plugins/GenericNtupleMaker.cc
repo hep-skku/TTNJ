@@ -37,8 +37,10 @@ class VectorConsumers
 public:
   typedef edm::ParameterSet PSet;
 
-  void init(const edm::ParameterSet& pset, edm::ConsumesCollector && iC, TTree* tree)
+  void init(const edm::ParameterSet& gpset, const string psetName, edm::ConsumesCollector && iC, TTree* tree)
   {
+    if ( !gpset.existsAs<PSet>(psetName) ) return;
+    const PSet pset = gpset.getParameter<PSet>(psetName);
     const auto names = pset.getParameterNamesForType<PSet>();
     for ( auto& name : names )
     {
@@ -86,9 +88,11 @@ class FlatConsumers
 public:
   typedef edm::ParameterSet PSet;
 
-  void init(const edm::ParameterSet& pset, edm::ConsumesCollector && iC,
+  void init(const edm::ParameterSet& gpset, const string psetName, edm::ConsumesCollector && iC,
             TTree* tree, const char* typeNameStr)
   {
+    if ( !gpset.existsAs<PSet>(psetName) ) return;
+    const PSet pset = gpset.getParameter<PSet>(psetName);
     const auto names = pset.getParameterNamesForType<PSet>();
     for ( auto& name : names )
     {
@@ -147,8 +151,10 @@ private:
 
   FlatConsumers<int> intCSet_;
   FlatConsumers<double> doubleCSet_;
+  FlatConsumers<float> floatCSet_;
   VectorConsumers<int> vintCSet_;
   VectorConsumers<double> vdoubleCSet_;
+  VectorConsumers<float> vfloatCSet_;
 
   typedef StringObjectFunction<reco::Candidate,true> CandFtn;
   typedef StringCutObjectSelector<reco::Candidate,true> CandSel;
@@ -187,10 +193,12 @@ GenericNtupleMaker::GenericNtupleMaker(const edm::ParameterSet& pset)
   tree_->Branch("lumi" , &lumiNumber_ , "lumi/I" );
   tree_->Branch("event", &eventNumber_, "event/I");
 
-  intCSet_.init(pset.getParameter<PSet>("int"), consumesCollector(), tree_, "I");
-  doubleCSet_.init(pset.getParameter<PSet>("double"), consumesCollector(), tree_, "D");
-  vintCSet_.init(pset.getParameter<PSet>("vint"), consumesCollector(), tree_);
-  vdoubleCSet_.init(pset.getParameter<PSet>("vdouble"), consumesCollector(), tree_);
+  intCSet_.init(pset, "int", consumesCollector(), tree_, "I");
+  doubleCSet_.init(pset, "double", consumesCollector(), tree_, "D");
+  floatCSet_.init(pset, "float", consumesCollector(), tree_, "F");
+  vintCSet_.init(pset, "ints", consumesCollector(), tree_);
+  vdoubleCSet_.init(pset, "doubles", consumesCollector(), tree_);
+  vfloatCSet_.init(pset, "floats", consumesCollector(), tree_);
 
   PSet candPSets = pset.getParameter<PSet>("cands");
   const strings candNames = candPSets.getParameterNamesForType<PSet>();
@@ -259,8 +267,10 @@ void GenericNtupleMaker::analyze(const edm::Event& event, const edm::EventSetup&
 
   nFailure += intCSet_.load(event);
   nFailure += doubleCSet_.load(event);
+  nFailure += floatCSet_.load(event);
   nFailure += vintCSet_.load(event);
   nFailure += vdoubleCSet_.load(event);
+  nFailure += vfloatCSet_.load(event);
 
   const size_t nCand = candTokens_.size();
   for ( size_t iCand=0; iCand < nCand; ++iCand )

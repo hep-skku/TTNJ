@@ -18,8 +18,6 @@ ntuple = cms.EDAnalyzer("GenericNtupleMaker",
         met_pt = cms.PSet(src = cms.InputTag("topDileptonObjects", "metPt")),
         met_phi = cms.PSet(src = cms.InputTag("topDileptonObjects", "metPhi")),
     ),
-    doubles = cms.PSet(
-    ),
     cands = cms.PSet(
         leptons = cms.PSet(
             src = cms.InputTag("topDileptonObjects", "leptons"),
