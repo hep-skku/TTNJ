@@ -4,23 +4,26 @@ from ROOT import *
 from array import *
 
 class NtupleAnalyzer(object):
-    def __init__(self, name, inFileNames, outFileName):
-        self.name = name
+    def __init__(self, inFileNames, outFileName,
+                 modName = "ntuple", treeName = "event", eventCounterName = "hNEvent"):
         self.weightVar = "1"
         self.precut = "1"
         self.h1 = {}
         self.h2 = {}
         self.cutSteps = []
         self.ntupleStep = None
+        self.isMC = False
 
         ## Load input tree and event number for scalers
-        self.chain = TChain("%s/event" % name)
+        self.chain = TChain("%s/%s" % (modName, treeName))
         self.nEventTotal = 0
+        if type(inFileNames) == type(''): inFileNames = inFileNames.split(',')
         for fName in inFileNames:
-            if None == TFile(fName): continue
-            self.chain.Add(f)
+            f = TFile(fName)
+            if None == f: continue
+            self.chain.Add(fName)
 
-            hNEvent = f.Get("%s/hEventCounter" % name)
+            hNEvent = f.Get("%s/%s" % (modName, eventCounterName))
             if hNEvent != None: self.nEventTotal += hNEvent.GetBinContent(1)
  
         self.scale = max(1, self.nEventTotal)
@@ -28,11 +31,13 @@ class NtupleAnalyzer(object):
 
     def setWeightVar(self, weightVar):
         self.weightVar = weightVar
+        if weightVar != "1": self.isMC = True
 
     def setPrecut(self, precut):
         self.precut = precut
 
     def addCutStep(self, name, cut, histNames):
+        if cut == '': cut = "1"
         if type(histNames) == type(''): histNames = [x.strip() for x in histNames.split(',')]
         self.cutSteps.append( (name, cut, histNames) )
 
