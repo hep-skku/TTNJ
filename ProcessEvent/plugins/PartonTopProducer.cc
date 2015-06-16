@@ -95,7 +95,7 @@ void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
       const reco::Candidate* dau = tLast->daughter(j);
       const unsigned int dauAbsId = abs(dau->pdgId());
       if ( dauAbsId == 24 and !w ) w = dau;
-      else if ( dauAbsId == 5 and !b ) b = dau;
+      else if ( dauAbsId < 6 and !b ) b = dau;
     }
     if ( !w or !b ) continue;
     reco::GenParticleRef wRef = buildGenParticle(w, partonRefHandle, partons);
