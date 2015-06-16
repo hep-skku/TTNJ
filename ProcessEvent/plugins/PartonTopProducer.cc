@@ -53,7 +53,7 @@ void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
   std::auto_ptr<reco::GenParticleCollection> partons(new reco::GenParticleCollection);
   auto partonRefHandle = event.getRefBeforePut<reco::GenParticleCollection>();
 
-  std::auto_ptr<int> channel(new int(CH_NONE));
+  int channel = CH_NONE;
   std::auto_ptr<std::vector<int> > modes(new std::vector<int>());
 
   // Collect top quarks and unstable B-hadrons
@@ -185,13 +185,13 @@ void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
   if ( modes->size() == 2 )
   {
     const int nLepton = nElectron + nMuon;
-    if      ( nLepton == 0 ) *channel = CH_FULLHADRON;
-    else if ( nLepton == 1 ) *channel = CH_SEMILEPTON;
-    else if ( nLepton == 2 ) *channel = CH_FULLLEPTON;
+    if      ( nLepton == 0 ) channel = CH_FULLHADRON;
+    else if ( nLepton == 1 ) channel = CH_SEMILEPTON;
+    else if ( nLepton == 2 ) channel = CH_FULLLEPTON;
   }
 
   event.put(partons);
-  event.put(channel, "channel");
+  event.put(std::auto_ptr<int>(new int(channel)), "channel");
   event.put(modes, "modes");
 }
 
