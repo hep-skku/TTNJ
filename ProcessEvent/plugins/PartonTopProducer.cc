@@ -203,6 +203,8 @@ void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
 
 const reco::Candidate* PartonTopProducer::getLast(const reco::Candidate* p) const
 {
+  if ( p->numberOfDaughters() >= 2 ) return p;
+
   for ( size_t i=0, n=p->numberOfDaughters(); i<n; ++i )
   {
     const reco::Candidate* dau = p->daughter(i);
