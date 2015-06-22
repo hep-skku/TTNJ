@@ -114,20 +114,6 @@ void TopGenInfoProducer::produce(edm::Event& event, const edm::EventSetup&)
       if ( partonP1->pt() < 20 or std::abs(partonP1->eta()) > 2.4 ) partonAccept = false;
       if ( partonP2->pt() < 20 or std::abs(partonP2->eta()) > 2.4 ) partonAccept = false;
     }
-
-if ( partonChannel > 0 and partonChannel <= 3 )
-{
-cout << "---" << endl;
-cout << "partonAccept = " << partonAccept << endl;
-cout << "partonChannel = " << partonChannel << endl;
-cout << "B1 " << partonB1->pdgId() << ' ' << partonB1->pt() << ' ' << partonB1->eta() << endl;
-cout << "B2 " << partonB2->pdgId() << ' ' << partonB2->pt() << ' ' << partonB2->eta() << endl;
-cout << "P1 " << partonP1->pdgId() << ' ' << partonP1->pt() << ' ' << partonP1->eta() << endl;
-cout << "Q1 " << partonQ1->pdgId() << ' ' << partonQ1->pt() << ' ' << partonQ1->eta() << endl;
-cout << "P2 " << partonP2->pdgId() << ' ' << partonP2->pt() << ' ' << partonP2->eta() << endl;
-cout << "Q2 " << partonQ2->pdgId() << ' ' << partonQ2->pt() << ' ' << partonQ2->eta() << endl;
-cout << "---" << endl;
-}
   }
 
   // pseudo T->BW, W->PQ
