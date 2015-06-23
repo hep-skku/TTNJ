@@ -203,12 +203,22 @@ void PartonTopProducer::produce(edm::Event& event, const edm::EventSetup& eventS
 
 const reco::Candidate* PartonTopProducer::getLast(const reco::Candidate* p) const
 {
-  if ( p->numberOfDaughters() >= 2 ) return p;
-
+  int nDecay = 0;
+  std::vector<const reco::Candidate*> sameCopies;
   for ( size_t i=0, n=p->numberOfDaughters(); i<n; ++i )
   {
     const reco::Candidate* dau = p->daughter(i);
-    if ( p->pdgId() == dau->pdgId() ) return getLast(dau);
+    const int dauId = dau->pdgId();
+    if ( dauId == 22 or dauId == 21 ) continue;
+    if ( p->pdgId() == dau->pdgId() ) sameCopies.push_back(dau);
+    else ++nDecay;
+  }
+  if ( nDecay == 0 )
+  {
+    for ( const auto dau : sameCopies )
+    {
+      if ( p->pdgId() == dau->pdgId() ) return getLast(dau);
+    }
   }
   return p;
 }
