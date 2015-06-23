@@ -34,6 +34,18 @@ private:
   const edm::EDGetTokenT<reco::GenParticleCollection> partonToken_;
   const edm::EDGetTokenT<reco::GenParticleCollection> pseudoToken_;
 
+  TH1F* hFH_tdpt_, * hFH_tdy_, * hFH_tdptCM_, * hFH_ttddphi_;
+  TH1F* hFH_t1dpt_, * hFH_t2dpt_;
+  TH1F* hFH_ttdpt_, * hFH_ttdy_, * hFH_ttdm_;
+
+  TH1F* hSL_tdpt_, * hSL_tdy_, * hSL_tdptCM_, * hSL_ttddphi_;
+  TH1F* hSL_t1dpt_, * hSL_t2dpt_;
+  TH1F* hSL_ttdpt_, * hSL_ttdy_, * hSL_ttdm_;
+
+  TH1F* hFL_tdpt_, * hFL_tdy_, * hFL_tdptCM_, * hFL_ttddphi_;
+  TH1F* hFL_t1dpt_, * hFL_t2dpt_;
+  TH1F* hFL_ttdpt_, * hFL_ttdy_, * hFL_ttdm_;
+
   TH2F* hFH_tpt_tpt_, * hFH_ty_ty_, * hFH_tptCM_tptCM_, * hFH_ttdphi_ttdphi_;
   TH2F* hFH_t1pt_t1pt_, * hFH_t2pt_t2pt_;
   TH2F* hFH_ttpt_ttpt_, * hFH_tty_tty_, * hFH_ttm_ttm_;
@@ -77,6 +89,18 @@ TopGenInfoProducer::TopGenInfoProducer(const edm::ParameterSet& pset):
   hFH_tty_tty_ = dFH.make<TH2F>("htty_tty", "ttbar y vs ttbar y;Parton t#bar{t} y;Pseudo t#bar{t} y", 100, -2.5, 2.5, 100, 2.5, -2.5);
   hFH_ttm_ttm_ = dFH.make<TH2F>("httm_ttm", "ttbar mass vs ttbar mass;Parton t#bar{t} mass (GeV);Pseudo t#bar{t} mass (GeV)", 1600, 0, 1600, 1600, 0, 1600);
 
+  hFH_tdpt_ = dFH.make<TH1F>("htdpt", "#Delta pt;top #Delta p_{T} (GeV)", 200, -100, 100);
+  hFH_tdy_ = dFH.make<TH1F>("htdy", "y vs y;top #Delta y", 100, -0.5, 0.5);
+  hFH_tdptCM_ = dFH.make<TH1F>("htdptCM", "pt at CM vs pt at CM;top #Delta p^{*}_{T} (GeV)", 200, -100, 100);
+  hFH_ttddphi_ = dFH.make<TH1F>("httddphi", "#delta#phi vs #delta#phi;top #Delta #Delta#phi", 100, -0.5, 0.5);
+
+  hFH_t1dpt_ = dFH.make<TH1F>("ht1dpt", "#Delta pt1;top #Delta p_{T}^{1st lead} (GeV)", 200, -100, 100);
+  hFH_t2dpt_ = dFH.make<TH1F>("ht2dpt", "#Delta pt2;top #Delta p_{T}^{2nd lead} (GeV)", 200, -100, 100);
+
+  hFH_ttdpt_ = dFH.make<TH1F>("httdpt", "ttbar pt vs ttbar pt;t#bar{t} #Delta p_{T} (GeV)", 200, -100, 100);
+  hFH_ttdy_ = dFH.make<TH1F>("httdy", "ttbar #Delta y;t#bar{t} #Delta y", 100, -0.5, 0.5);
+  hFH_ttdm_ = dFH.make<TH1F>("httdm", "ttbar #Delta mass;Parton t#bar{t} #Delta mass (GeV)", 200, -100, 100);
+
   auto dSL = fs->mkdir("SemiLepton");
 
   hSL_tpt_tpt_ = dSL.make<TH2F>("htpt_tpt", "pt vs pt;Parton top p_{T} (GeV);Pseudo top p_{T} (GeV)", 500, 0, 500, 500, 0, 500);
@@ -90,6 +114,18 @@ TopGenInfoProducer::TopGenInfoProducer(const edm::ParameterSet& pset):
   hSL_ttpt_ttpt_ = dSL.make<TH2F>("httpt_ttpt", "ttbar pt vs ttbar pt;Parton t#bar{t} p_{T} (GeV);Pseudo t#bar{t} p_{T} (GeV)", 500, 0, 500, 500, 0, 500);
   hSL_tty_tty_ = dSL.make<TH2F>("htty_tty", "ttbar y vs ttbar y;Parton t#bar{t} y;Pseudo t#bar{t} y", 100, -2.5, 2.5, 100, 2.5, -2.5);
   hSL_ttm_ttm_ = dSL.make<TH2F>("httm_ttm", "ttbar mass vs ttbar mass;Parton t#bar{t} mass (GeV);Pseudo t#bar{t} mass (GeV)", 1600, 0, 1600, 1600, 0, 1600);
+
+  hSL_tdpt_ = dSL.make<TH1F>("htdpt", "#Delta pt;top #Delta p_{T} (GeV)", 200, -100, 100);
+  hSL_tdy_ = dSL.make<TH1F>("htdy", "y vs y;top #Delta y", 100, -0.5, 0.5);
+  hSL_tdptCM_ = dSL.make<TH1F>("htdptCM", "pt at CM vs pt at CM;top #Delta p^{*}_{T} (GeV)", 200, -100, 100);
+  hSL_ttddphi_ = dSL.make<TH1F>("httddphi", "#delta#phi vs #delta#phi;top #Delta #Delta#phi", 100, -0.5, 0.5);
+
+  hSL_t1dpt_ = dSL.make<TH1F>("ht1dpt", "#Delta pt1;top #Delta p_{T}^{1st lead} (GeV)", 200, -100, 100);
+  hSL_t2dpt_ = dSL.make<TH1F>("ht2dpt", "#Delta pt2;top #Delta p_{T}^{2nd lead} (GeV)", 200, -100, 100);
+
+  hSL_ttdpt_ = dSL.make<TH1F>("httdpt", "ttbar pt vs ttbar pt;t#bar{t} #Delta p_{T} (GeV)", 200, -100, 100);
+  hSL_ttdy_ = dSL.make<TH1F>("httdy", "ttbar #Delta y;t#bar{t} #Delta y", 100, -0.5, 0.5);
+  hSL_ttdm_ = dSL.make<TH1F>("httdm", "ttbar #Delta mass;Parton t#bar{t} #Delta mass (GeV)", 200, -100, 100);
 
   auto dFL = fs->mkdir("FullLepton");
 
@@ -105,21 +141,34 @@ TopGenInfoProducer::TopGenInfoProducer(const edm::ParameterSet& pset):
   hFL_tty_tty_ = dFL.make<TH2F>("htty_tty", "ttbar y vs ttbar y;Parton t#bar{t} y;Pseudo t#bar{t} y", 100, -2.5, 2.5, 100, 2.5, -2.5);
   hFL_ttm_ttm_ = dFL.make<TH2F>("httm_ttm", "ttbar mass vs ttbar mass;Parton t#bar{t} mass (GeV);Pseudo t#bar{t} mass (GeV)", 1600, 0, 1600, 1600, 0, 1600);
 
-  hSL_lpt_lpt_ = dSL.make<TH2F>("hSL_lpt_lpt", "lep pt vs pt;Parton lepton p_{T} (GeV);Pseudo lepton p_{T} (GeV)", 500, 0, 500, 500, 0, 500);
-  hSL_leta_leta_ = dSL.make<TH2F>("hSL_leta_leta", "lep eta vs eta;Parton lepton #eta;Pseudo lepton #eta", 100, -2.5, 2.5, 100, -2.5, 2.5);
-  hSL_bpt_bpt_ = dSL.make<TH2F>("hSL_bpt_bpt", "b pt vs pt;Parton b p_{T} (GeV);Pseudo bjet p_{T} (GeV)", 500, 0, 500, 500, 0, 500);
-  hSL_beta_beta_ = dSL.make<TH2F>("hSL_beta_beta", "lep eta vs eta;Parton b #eta;Pseudo bjet #eta", 100, -2.5, 2.5, 100, -2.5, 2.5);
-  hSL_bbpt_bbpt_ = dSL.make<TH2F>("hSL_bbpt_bbpt", "bb pt vs pt;Parton b#bar{b} p_{T} (GeV);Pseudo b#bar{b} p_{T} (GeV)", 500, 0, 500, 500, 0, 500);
-  hSL_bbm_bbm_ = dSL.make<TH2F>("hSL_bbm_bbm", "bb m vs m;Parton b#bar{b} mass (GeV);Pseudo b#bar{b} mass (GeV)", 500, 0, 500, 500, 0, 500);
+  hFL_tdpt_ = dFL.make<TH1F>("htdpt", "#Delta pt;top #Delta p_{T} (GeV)", 200, -100, 100);
+  hFL_tdy_ = dFL.make<TH1F>("htdy", "y vs y;top #Delta y", 100, -0.5, 0.5);
+  hFL_tdptCM_ = dFL.make<TH1F>("htdptCM", "pt at CM vs pt at CM;top #Delta p^{*}_{T} (GeV)", 200, -100, 100);
+  hFL_ttddphi_ = dFL.make<TH1F>("httddphi", "#delta#phi vs #delta#phi;top #Delta #Delta#phi", 100, -0.5, 0.5);
 
-  hFL_lpt_lpt_ = dFL.make<TH2F>("hFL_lpt_lpt", "lep pt vs pt;Parton lepton p_{T} (GeV);Pseudo lepton p_{T} (GeV)", 500, 0, 500, 500, 0, 500);
-  hFL_leta_leta_ = dFL.make<TH2F>("hFL_leta_leta", "lep eta vs eta;Parton lepton #eta;Pseudo lepton #eta", 100, -2.5, 2.5, 100, -2.5, 2.5);
-  hFL_llpt_llpt_ = dFL.make<TH2F>("hFL_llpt_llpt", "ll pt vs pt;Parton ll p_{T} (GeV);Pseudo ll p_{T} (GeV)", 500, 0, 500, 500, 0, 500);
-  hFL_llm_llm_ = dFL.make<TH2F>("hFL_llm_llm", "ll m vs m;Parton ll mass (GeV);Pseudo ll mass (GeV)", 500, 0, 500, 500, 0, 500);
-  hFL_bpt_bpt_ = dFL.make<TH2F>("hFL_bpt_bpt", "b pt vs pt;Parton b p_{T} (GeV);Pseudo bjet p_{T} (GeV)", 500, 0, 500, 500, 0, 500);
-  hFL_beta_beta_ = dFL.make<TH2F>("hFL_beta_beta", "lep eta vs eta;Parton b #eta;Pseudo bjet #eta", 100, -2.5, 2.5, 100, -2.5, 2.5);
-  hFL_bbpt_bbpt_ = dFL.make<TH2F>("hFL_bbpt_bbpt", "bb pt vs pt;Parton b#bar{b} p_{T} (GeV);Pseudo b#bar{b} p_{T} (GeV)", 500, 0, 500, 500, 0, 500);
-  hFL_bbm_bbm_ = dFL.make<TH2F>("hFL_bbm_bbm", "bb m vs m;Parton b#bar{b} mass (GeV);Pseudo b#bar{b} mass (GeV)", 500, 0, 500, 500, 0, 500);
+  hFL_t1dpt_ = dFL.make<TH1F>("ht1dpt", "#Delta pt1;top #Delta p_{T}^{1st lead} (GeV)", 200, -100, 100);
+  hFL_t2dpt_ = dFL.make<TH1F>("ht2dpt", "#Delta pt2;top #Delta p_{T}^{2nd lead} (GeV)", 200, -100, 100);
+
+  hFL_ttdpt_ = dFL.make<TH1F>("httdpt", "ttbar pt vs ttbar pt;t#bar{t} #Delta p_{T} (GeV)", 200, -100, 100);
+  hFL_ttdy_ = dFL.make<TH1F>("httdy", "ttbar #Delta y;t#bar{t} #Delta y", 100, -0.5, 0.5);
+  hFL_ttdm_ = dFL.make<TH1F>("httdm", "ttbar #Delta mass;Parton t#bar{t} #Delta mass (GeV)", 200, -100, 100);
+
+  // Particle levels
+  hSL_lpt_lpt_ = dSL.make<TH2F>("hlpt_lpt", "lep pt vs pt;Parton lepton p_{T} (GeV);Pseudo lepton p_{T} (GeV)", 500, 0, 500, 500, 0, 500);
+  hSL_leta_leta_ = dSL.make<TH2F>("hleta_leta", "lep eta vs eta;Parton lepton #eta;Pseudo lepton #eta", 100, -2.5, 2.5, 100, -2.5, 2.5);
+  hSL_bpt_bpt_ = dSL.make<TH2F>("hbpt_bpt", "b pt vs pt;Parton b p_{T} (GeV);Pseudo bjet p_{T} (GeV)", 500, 0, 500, 500, 0, 500);
+  hSL_beta_beta_ = dSL.make<TH2F>("hbeta_beta", "lep eta vs eta;Parton b #eta;Pseudo bjet #eta", 100, -2.5, 2.5, 100, -2.5, 2.5);
+  hSL_bbpt_bbpt_ = dSL.make<TH2F>("hbbpt_bbpt", "bb pt vs pt;Parton b#bar{b} p_{T} (GeV);Pseudo b#bar{b} p_{T} (GeV)", 500, 0, 500, 500, 0, 500);
+  hSL_bbm_bbm_ = dSL.make<TH2F>("hbbm_bbm", "bb m vs m;Parton b#bar{b} mass (GeV);Pseudo b#bar{b} mass (GeV)", 500, 0, 500, 500, 0, 500);
+
+  hFL_lpt_lpt_ = dFL.make<TH2F>("hlpt_lpt", "lep pt vs pt;Parton lepton p_{T} (GeV);Pseudo lepton p_{T} (GeV)", 500, 0, 500, 500, 0, 500);
+  hFL_leta_leta_ = dFL.make<TH2F>("hleta_leta", "lep eta vs eta;Parton lepton #eta;Pseudo lepton #eta", 100, -2.5, 2.5, 100, -2.5, 2.5);
+  hFL_llpt_llpt_ = dFL.make<TH2F>("hllpt_llpt", "ll pt vs pt;Parton ll p_{T} (GeV);Pseudo ll p_{T} (GeV)", 500, 0, 500, 500, 0, 500);
+  hFL_llm_llm_ = dFL.make<TH2F>("hllm_llm", "ll m vs m;Parton ll mass (GeV);Pseudo ll mass (GeV)", 500, 0, 500, 500, 0, 500);
+  hFL_bpt_bpt_ = dFL.make<TH2F>("hbpt_bpt", "b pt vs pt;Parton b p_{T} (GeV);Pseudo bjet p_{T} (GeV)", 500, 0, 500, 500, 0, 500);
+  hFL_beta_beta_ = dFL.make<TH2F>("hbeta_beta", "lep eta vs eta;Parton b #eta;Pseudo bjet #eta", 100, -2.5, 2.5, 100, -2.5, 2.5);
+  hFL_bbpt_bbpt_ = dFL.make<TH2F>("hbbpt_bbpt", "bb pt vs pt;Parton b#bar{b} p_{T} (GeV);Pseudo b#bar{b} p_{T} (GeV)", 500, 0, 500, 500, 0, 500);
+  hFL_bbm_bbm_ = dFL.make<TH2F>("hbbm_bbm", "bb m vs m;Parton b#bar{b} mass (GeV);Pseudo b#bar{b} mass (GeV)", 500, 0, 500, 500, 0, 500);
 }
 
 void TopGenInfoProducer::produce(edm::Event& event, const edm::EventSetup&)
@@ -246,6 +295,20 @@ void TopGenInfoProducer::produce(edm::Event& event, const edm::EventSetup&)
 
     if ( partonChannel == 1 )
     {
+      hFH_tdpt_->Fill(pseudoT1->pt()-partonT1Tmp->pt());
+      hFH_tdpt_->Fill(pseudoT2->pt()-partonT2Tmp->pt());
+      hFH_tdy_->Fill(pseudoT1->p4().Rapidity()-partonT1Tmp->p4().Rapidity());
+      hFH_tdy_->Fill(pseudoT2->p4().Rapidity()-partonT2Tmp->p4().Rapidity());
+      hFH_tdptCM_->Fill(pseudoPtCM-partonPtCM);
+      hFH_ttddphi_->Fill(pseudoDphi-partonDphi);
+
+      hFH_t1dpt_->Fill(pseudoT1->pt()-partonT1Tmp->pt());
+      hFH_t2dpt_->Fill(pseudoT2->pt()-partonT2Tmp->pt());
+
+      hFH_ttdpt_->Fill(pseudoTT.pt()-partonTT.pt());
+      hFH_ttdy_->Fill(pseudoTT.Rapidity()-partonTT.Rapidity());
+      hFH_ttdm_->Fill(pseudoTT.mass()-partonTT.mass());
+
       hFH_tpt_tpt_->Fill(partonT1Tmp->pt(), pseudoT1->pt());
       hFH_tpt_tpt_->Fill(partonT2Tmp->pt(), pseudoT2->pt());
       hFH_ty_ty_->Fill(partonT1Tmp->p4().Rapidity(), pseudoT1->p4().Rapidity());
@@ -262,6 +325,20 @@ void TopGenInfoProducer::produce(edm::Event& event, const edm::EventSetup&)
     }
     else if ( partonChannel == 2 )
     {
+      hSL_tdpt_->Fill(pseudoT1->pt()-partonT1Tmp->pt());
+      hSL_tdpt_->Fill(pseudoT2->pt()-partonT2Tmp->pt());
+      hSL_tdy_->Fill(pseudoT1->p4().Rapidity()-partonT1Tmp->p4().Rapidity());
+      hSL_tdy_->Fill(pseudoT2->p4().Rapidity()-partonT2Tmp->p4().Rapidity());
+      hSL_tdptCM_->Fill(pseudoPtCM-partonPtCM);
+      hSL_ttddphi_->Fill(pseudoDphi-partonDphi);
+
+      hSL_t1dpt_->Fill(pseudoT1->pt()-partonT1Tmp->pt());
+      hSL_t2dpt_->Fill(pseudoT2->pt()-partonT2Tmp->pt());
+
+      hSL_ttdpt_->Fill(pseudoTT.pt()-partonTT.pt());
+      hSL_ttdy_->Fill(pseudoTT.Rapidity()-partonTT.Rapidity());
+      hSL_ttdm_->Fill(pseudoTT.mass()-partonTT.mass());
+
       hSL_tpt_tpt_->Fill(partonT1Tmp->pt(), pseudoT1->pt());
       hSL_tpt_tpt_->Fill(partonT2Tmp->pt(), pseudoT2->pt());
       hSL_ty_ty_->Fill(partonT1Tmp->p4().Rapidity(), pseudoT1->p4().Rapidity());
@@ -296,6 +373,20 @@ void TopGenInfoProducer::produce(edm::Event& event, const edm::EventSetup&)
     }
     else if ( partonChannel == 3 )
     {
+      hFL_tdpt_->Fill(pseudoT1->pt()-partonT1Tmp->pt());
+      hFL_tdpt_->Fill(pseudoT2->pt()-partonT2Tmp->pt());
+      hFL_tdy_->Fill(pseudoT1->p4().Rapidity()-partonT1Tmp->p4().Rapidity());
+      hFL_tdy_->Fill(pseudoT2->p4().Rapidity()-partonT2Tmp->p4().Rapidity());
+      hFL_tdptCM_->Fill(pseudoPtCM-partonPtCM);
+      hFL_ttddphi_->Fill(pseudoDphi-partonDphi);
+
+      hFL_t1dpt_->Fill(pseudoT1->pt()-partonT1Tmp->pt());
+      hFL_t2dpt_->Fill(pseudoT2->pt()-partonT2Tmp->pt());
+
+      hFL_ttdpt_->Fill(pseudoTT.pt()-partonTT.pt());
+      hFL_ttdy_->Fill(pseudoTT.Rapidity()-partonTT.Rapidity());
+      hFL_ttdm_->Fill(pseudoTT.mass()-partonTT.mass());
+
       hFL_tpt_tpt_->Fill(partonT1Tmp->pt(), pseudoT1->pt());
       hFL_tpt_tpt_->Fill(partonT2Tmp->pt(), pseudoT2->pt());
       hFL_ty_ty_->Fill(partonT1Tmp->p4().Rapidity(), pseudoT1->p4().Rapidity());
