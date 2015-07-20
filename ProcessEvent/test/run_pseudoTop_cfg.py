@@ -59,20 +59,20 @@ process.ntuple = cms.EDAnalyzer("GenericNtupleMaker",
 
 process.p = cms.Path(
     process.partonTop
-#    process.pseudoTop
-#  * process.topGenInfo
-#  * process.ntuple
+  * process.pseudoTop
+  * process.topGenInfo
+  * process.ntuple
 )
 
 process.TFileService = cms.Service("TFileService",
     fileName = cms.string('f.root')
 )
 
-#process.out = cms.OutputModule("PoolOutputModule",
-#    fileName = cms.untracked.string("o.root"),
-#    outputCommands = cms.untracked.vstring(
-#        "drop *",
-#        "keep *_*_*_ANA",
-#    ),
-#)
-#process.outPath = cms.EndPath(process.out)
+process.out = cms.OutputModule("PoolOutputModule",
+    fileName = cms.untracked.string("o.root"),
+    outputCommands = cms.untracked.vstring(
+        "drop *",
+        "keep *_*_*_ANA",
+    ),
+)
+process.outPath = cms.EndPath(process.out)
